@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ola Ride Analytics · BDA Mini Project</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<header class="topbar">
+  <div class="brand"><span class="logo">🚖</span><div><h1>Ola Ride Analytics</h1><p>Big Data Analytics · Mini Project</p></div></div>
+  <nav id="tabs">
+    <button data-tab="dashboard" class="active">Dashboard</button>
+    <button data-tab="queries">SQL Queries</button>
+    <button data-tab="playground">SQL Playground</button>
+    <button data-tab="explorer">Data Explorer</button>
+    <button data-tab="about">About</button>
+  </nav>
+</header>
+
+<main>
+<!-- ================= DASHBOARD ================= -->
+<section id="tab-dashboard" class="tab active">
+  <div class="filters card">
+    <label>From <input type="date" id="f-from"></label>
+    <label>To <input type="date" id="f-to"></label>
+    <div class="chips" id="f-vehicles"></div>
+    <button id="f-reset" class="ghost">Reset</button>
+  </div>
+
+  <div class="kpis" id="kpis"></div>
+
+  <div class="grid">
+    <div class="card span2"><h3>Daily bookings</h3><div id="c-daily"></div></div>
+    <div class="card"><h3>Booking status</h3><div id="c-status"></div></div>
+
+    <div class="card"><h3>Revenue by vehicle type <small>successful rides</small></h3><div id="c-revenue"></div></div>
+    <div class="card"><h3>Payment methods</h3><div id="c-payment"></div></div>
+    <div class="card"><h3>Bookings by hour of day</h3><div id="c-hourly"></div></div>
+
+    <div class="card span3"><h3>Demand heatmap <small>weekday × hour</small></h3><div id="c-heat"></div></div>
+
+    <div class="card"><h3>Cancelled by customer <small>reasons</small></h3><div id="c-cc"></div></div>
+    <div class="card"><h3>Cancelled by driver <small>reasons</small></h3><div id="c-cd"></div></div>
+    <div class="card"><h3>Incomplete rides <small>reasons</small></h3><div id="c-inc"></div></div>
+
+    <div class="card"><h3>Top pickup locations</h3><div id="c-pick"></div></div>
+    <div class="card"><h3>Top routes</h3><div id="c-routes"></div></div>
+    <div class="card"><h3>Top 5 customers</h3><div id="t-customers"></div></div>
+
+    <div class="card span3"><h3>Vehicle scorecard</h3><div id="t-vehicles"></div></div>
+  </div>
+</section>
+
+<!-- ================= SQL QUERIES ================= -->
+<section id="tab-queries" class="tab">
+  <div class="card intro">
+    <h2>Analysis queries</h2>
+    <p>The 10 business questions from the original project, plus 6 extended ones (including window functions). Open a query to run it live on the database.</p>
+  </div>
+  <div id="query-list"></div>
+</section>
+
+<!-- ================= PLAYGROUND ================= -->
+<section id="tab-playground" class="tab">
+  <div class="pg">
+    <div class="card">
+      <h3>Write your own SQL <small>read-only · Ctrl+Enter to run</small></h3>
+      <textarea id="sql" spellcheck="false">SELECT Vehicle_Type,
+       COUNT(*) AS bookings,
+       ROUND(AVG(Booking_Value), 1) AS avg_value
+FROM bookings
+GROUP BY Vehicle_Type
+ORDER BY bookings DESC;</textarea>
+      <div class="row"><button id="run" class="primary">▶ Run query</button><span id="pg-meta" class="muted"></span></div>
+      <div id="pg-result"></div>
+    </div>
+    <aside class="card">
+      <h3>Table: <code>bookings</code></h3>
+      <ul id="schema" class="schema"></ul>
+    </aside>
+  </div>
+</section>
+
+<!-- ================= EXPLORER ================= -->
+<section id="tab-explorer" class="tab">
+  <div class="filters card">
+    <input type="search" id="x-q" placeholder="Search booking ID, customer ID, pickup, drop…">
+    <select id="x-status"><option value="">All statuses</option></select>
+    <select id="x-vehicle"><option value="">All vehicles</option></select>
+    <span id="x-count" class="muted"></span>
+  </div>
+  <div class="card"><div id="x-table"></div>
+    <div class="pager"><button id="x-prev" class="ghost">← Prev</button><span id="x-page"></span><button id="x-next" class="ghost">Next →</button></div>
+  </div>
+</section>
+
+<!-- ================= ABOUT ================= -->
+<section id="tab-about" class="tab">
+  <div class="card prose">
+    <h2>About this project</h2>
+    <p>This project analyses <b>Ola ride bookings</b> (Bengaluru, July 2024) to understand demand, cancellations, payments and customer behaviour. The original version used MySQL Workbench and Power BI; this version turns the same analysis into a web application that runs locally in the browser.</p>
+
+    <h3>Data pipeline</h3>
+    <ol class="pipeline">
+      <li><b>Ingest</b><span><code>Bookings.csv</code> (raw, 103k lines)</span></li>
+      <li><b>Clean</b><span>drop blank rows, convert "null" → NULL, fix types &amp; time format</span></li>
+      <li><b>Store</b><span>SQLite database with indexes</span></li>
+      <li><b>Analyse</b><span>SQL aggregations &amp; window functions</span></li>
+      <li><b>Serve</b><span>Flask REST API returning JSON</span></li>
+      <li><b>Visualise</b><span>interactive charts in the browser</span></li>
+    </ol>
+
+    <h3>Tech stack</h3>
+    <p>Python · Flask · SQLite · HTML/CSS/JavaScript (hand-written SVG charts, no external libraries, works offline).</p>
+
+    <h3>Dataset summary</h3>
+    <div id="about-stats" class="stats"></div>
+
+    <h3>Data quality notes</h3>
+    <ul>
+      <li>The raw CSV contains about <b>82,617 completely empty rows</b> and a trailing empty column; both are removed during ingestion.</li>
+      <li>Ratings, payment method and TAT fields exist only for <b>successful</b> bookings; reasons exist only for the matching cancellation type, so those columns are legitimately NULL elsewhere.</li>
+      <li><code>Booking_Value</code> is also present on cancelled rides, so revenue is always computed on <code>Booking_Status = 'Success'</code>.</li>
+    </ul>
+  </div>
+</section>
+</main>
+
+<div id="tip" class="tip"></div>
+<script src="{{ url_for('static', filename='charts.js') }}"></script>
+<script src="{{ url_for('static', filename='app.js') }}"></script>
+</body>
+</html>
