@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # 🚖 Ola Ride Analytics — Big Data Analytics Mini Project
 
 A web version of the Ola ride-data analysis. It runs **locally in your browser** (`http://localhost:5000`)
@@ -57,3 +58,6 @@ ola-bda-dashboard/
 * Revenue = sum of `Booking_Value` where `Booking_Status = 'Success'` (cancelled rows also carry a value).
 * SQL dialect is SQLite; the original MySQL queries needed no change except removing `CREATE VIEW`.
 * Port busy? Change `port=5000` at the bottom of `app.py`.
+=======
+# ola-uber-analytics
+>>>>>>> c58f5334dc16056c91de21842107ba4f1aac6046
